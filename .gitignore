@@ -93,4 +93,4 @@ modules.xml
 
 # End of https://www.toptal.com/developers/gitignore/api/pycharm+all
 
-*.h5
+mask_rcnn_coco.h5

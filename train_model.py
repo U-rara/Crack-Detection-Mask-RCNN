@@ -63,7 +63,7 @@ class ShapesConfig(Config):
 
     # Reduce training ROIs per image because the images are small and have
     # few objects. Aim to allow ROI sampling to pick 33% positive ROIs.
-    TRAIN_ROIS_PER_IMAGE = 100
+    TRAIN_ROIS_PER_IMAGE = 200
     # TRAIN_ROIS_PER_IMAGE = 200
 
     # Use a small epoch since the data is simple
@@ -189,13 +189,14 @@ def data_split(full_list, ratio, shuffle=False):
     sublist_2 = full_list[offset:]
     return sublist_1, sublist_2
 
+
 # 基础设置
 dataset_root_path = "mydata/"
 img_floder = dataset_root_path + "pic"
 mask_floder = dataset_root_path + "cv2_mask"
 imglist = os.listdir(img_floder)
 count = len(imglist)
-imglist_train,imglist_val=data_split(imglist,0.8,shuffle=True)
+imglist_train, imglist_val = data_split(imglist, 0.8, shuffle=True)
 
 # train与val数据集准备
 dataset_train = CrackDataset()
@@ -237,14 +238,22 @@ elif init_with == "last":
     # Load the last model you trained and continue training
     model.load_weights(model.find_last()[1], by_name=True)
 
+model_inference = modellib.MaskRCNN(mode="inference", config=config, model_dir=MODEL_DIR)
+
+mean_average_precision_callback = \
+    modellib.MeanAveragePrecisionCallback(model,
+                                          model_inference, dataset_val,
+                                          calculate_map_at_every_X_epoch=2, verbose=1)
+
 # Train the head branches
 # Passing layers="heads" freezes all layers except the head
 # layers. You can also pass a regular expression to select
 # which layers to train by name pattern.
 model.train(dataset_train, dataset_val,
             learning_rate=config.LEARNING_RATE,
-            epochs=10,
-            layers='heads')
+            epochs=100,
+            layers='heads'
+            , custom_callbacks=[mean_average_precision_callback])
 
 # Fine tune all layers
 # Passing layers="all" trains all layers. You can also
@@ -252,5 +261,5 @@ model.train(dataset_train, dataset_val,
 # train by name pattern.
 model.train(dataset_train, dataset_val,
             learning_rate=config.LEARNING_RATE / 10,
-            epochs=10,
+            epochs=100,
             layers="all")
