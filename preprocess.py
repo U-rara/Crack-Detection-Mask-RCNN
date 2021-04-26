@@ -78,7 +78,6 @@ class ShapesConfig(Config):
 
 
 config = ShapesConfig()
-config.display()
 
 
 class CrackDataset(utils.Dataset):
@@ -105,7 +104,7 @@ class CrackDataset(utils.Dataset):
                     at_pixel = image.getpixel((i, j))
                     if at_pixel == index + 1:
                         mask[j, i, index] = 1
-        np.savez_compressed(os.path.join(ROOT_DIR, 'mydata', 'rwmask', mask))
+        np.savez_compressed(os.path.join(ROOT_DIR, 'mydata', 'saved_mask', mask))
         return mask
 
     # 重新写load_shapes，里面包含自己的自己的类别
@@ -140,27 +139,14 @@ class CrackDataset(utils.Dataset):
     def load_mask(self, image_id):
         """Generate instance masks for shapes of the given image ID.
         """
-        global iter_num
         print("image_id", image_id)
         info = self.image_info[image_id]
         count = 1  # number of object
         img = Image.open(info['mask_path'])
         num_obj = self.get_obj_index(img)
-        mask = np.zeros([info['height'], info['width'], num_obj], dtype=np.uint8)
+        mask = np.zeros(
+                [info['height'], info['width'], num_obj], dtype=np.uint8)
         mask = self.draw_mask(num_obj, mask, img, image_id)
-        occlusion = np.logical_not(mask[:, :, -1]).astype(np.uint8)
-        for i in range(count - 2, -1, -1):
-            mask[:, :, i] = mask[:, :, i] * occlusion
-
-            occlusion = np.logical_and(occlusion, np.logical_not(mask[:, :, i]))
-        labels = []
-        labels = self.from_yaml_get_class(image_id)
-        labels_form = []
-        for i in range(len(labels)):
-            if labels[i].find("crack") != -1:
-                labels_form.append("crack")
-        class_ids = np.array([self.class_names.index(s) for s in labels_form])
-        return mask, class_ids.astype(np.int32)
 
 
 def get_ax(rows=1, cols=1, size=8):
@@ -194,46 +180,48 @@ def data_split(full_list, ratio, shuffle=False):
     return sublist_1, sublist_2
 
 
-# 基础设置
-dataset_root_path = "mydata/"
-img_floder = dataset_root_path + "pic"
-mask_floder = dataset_root_path + "cv2_mask"
-imglist = os.listdir(img_floder)
-count = len(imglist)
-imglist_train, imglist_val = data_split(imglist, 0.8, shuffle=True)
+if __name__ == '__main__':
 
-# train与val数据集准备
-dataset_train = CrackDataset()
-dataset_train.load_shapes(len(imglist_train), img_floder, mask_floder, imglist_train, dataset_root_path)
-dataset_train.prepare()
+    # 基础设置
+    dataset_root_path = "mydata/"
+    img_floder = dataset_root_path + "pic"
+    mask_floder = dataset_root_path + "cv2_mask"
+    imglist = os.listdir(img_floder)
+    count = len(imglist)
+    imglist_train, imglist_val = data_split(imglist, 0.8, shuffle=True)
 
-print("dataset_train-->", dataset_train._image_ids)
+    # train与val数据集准备
+    dataset_train = CrackDataset()
+    dataset_train.load_shapes(len(imglist_train), img_floder, mask_floder, imglist_train, dataset_root_path)
+    dataset_train.prepare()
 
-dataset_val = CrackDataset()
-dataset_val.load_shapes(len(imglist_val), img_floder, mask_floder, imglist_val, dataset_root_path)
-dataset_val.prepare()
+    print("dataset_train-->", dataset_train._image_ids)
 
-print("dataset_val-->", dataset_val._image_ids)
+    dataset_val = CrackDataset()
+    dataset_val.load_shapes(len(imglist_val), img_floder, mask_floder, imglist_val, dataset_root_path)
+    dataset_val.prepare()
 
-# Load and display random samples
-# image_ids = np.random.choice(dataset_train.image_ids, 4)
-# for image_id in image_ids:
-#    image = dataset_train.load_image(image_id)
-#    mask, class_ids = dataset_train.load_mask(image_id)
-#    visualize.display_top_masks(image, mask, class_ids, dataset_train.class_names)
+    print("dataset_val-->", dataset_val._image_ids)
 
-# Create model in training mode
-queue = Queue()
-thread_num = 1
-[queue.put(id) for id in dataset_train.image_ids]
-print("start")
-pthread = Pool(thread_num)
+    # Load and display random samples
+    # image_ids = np.random.choice(dataset_train.image_ids, 4)
+    # for image_id in image_ids:
+    #    image = dataset_train.load_image(image_id)
+    #    mask, class_ids = dataset_train.load_mask(image_id)
+    #    visualize.display_top_masks(image, mask, class_ids, dataset_train.class_names)
 
-while not queue.empty():
-    image_id = queue.get()
-    pthread.apply_async(dataset_train.load_mask, args=(image_id,))
+    # Create model in training mode
+    queue = Queue()
+    thread_num = 8
+    [queue.put(id) for id in dataset_train.image_ids]
+    print("start")
+    pthread = Pool(thread_num)
 
-pthread.close()
-pthread.join()
+    while not queue.empty():
+        image_id = queue.get()
+        pthread.apply_async(dataset_train.load_mask, args=(image_id,))
 
-print("queue is empty!")
+    pthread.close()
+    pthread.join()
+
+    print("queue is empty!")
