@@ -238,22 +238,22 @@ elif init_with == "last":
     # Load the last model you trained and continue training
     model.load_weights(model.find_last()[1], by_name=True)
 
-model_inference = modellib.MaskRCNN(mode="inference", config=config, model_dir=MODEL_DIR)
-
-mean_average_precision_callback = \
-    modellib.MeanAveragePrecisionCallback(model,
-                                          model_inference, dataset_val,
-                                          calculate_map_at_every_X_epoch=2, verbose=1)
+# model_inference = modellib.MaskRCNN(mode="inference", config=config, model_dir=MODEL_DIR)
+#
+# mean_average_precision_callback = \
+#     modellib.MeanAveragePrecisionCallback(model,
+#                                           model_inference, dataset_val,
+#                                           calculate_map_at_every_X_epoch=2, verbose=1)
 
 # Train the head branches
 # Passing layers="heads" freezes all layers except the head
 # layers. You can also pass a regular expression to select
 # which layers to train by name pattern.
-model.train(dataset_train, dataset_val,
-            learning_rate=config.LEARNING_RATE,
-            epochs=100,
-            layers='heads'
-            , custom_callbacks=[mean_average_precision_callback])
+# model.train(dataset_train, dataset_val,
+#             learning_rate=config.LEARNING_RATE,
+#             epochs=100,
+#             layers='heads'
+#             , custom_callbacks=[mean_average_precision_callback])
 
 # Fine tune all layers
 # Passing layers="all" trains all layers. You can also
@@ -261,5 +261,5 @@ model.train(dataset_train, dataset_val,
 # train by name pattern.
 model.train(dataset_train, dataset_val,
             learning_rate=config.LEARNING_RATE / 10,
-            epochs=100,
+            epochs=200,
             layers="all")
