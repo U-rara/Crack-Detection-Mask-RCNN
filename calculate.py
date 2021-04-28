@@ -65,7 +65,6 @@ class ShapesConfig(Config):
     VALIDATION_STEPS = 20
 
 
-
 config = ShapesConfig()
 
 
@@ -183,7 +182,7 @@ def text_save(filename, data):  # filename为写入CSV文件的路径，data为�
 
 
 # 测试集设置
-dataset_root_path = "test_data/"
+dataset_root_path = "mydata/"
 img_floder = dataset_root_path + "pic"
 mask_floder = dataset_root_path + "cv2_mask"
 imglist = os.listdir(img_floder)
@@ -211,8 +210,7 @@ model = modellib.MaskRCNN(mode="inference",
                           model_dir=MODEL_DIR)
 
 # model_path = os.path.join(MODEL_DIR, "KL1000.h5")
-model_path = "./mask_rcnn_shapes_0006.h5"
-
+model_path = './logs/shapes20210427T1233/mask_rcnn_shapes_0199.h5'
 
 # Load trained weights
 print("Loading weights from ", model_path)
@@ -270,5 +268,6 @@ plt.legend()
 plt.show()
 
 # 保存precision, recall信息用于后续绘制图像
+os.chdir(ROOT_DIR + '/result')
 text_save('Kpreci.txt', precisions)
 text_save('Krecall.txt', recalls)

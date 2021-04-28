@@ -94,3 +94,5 @@ modules.xml
 # End of https://www.toptal.com/developers/gitignore/api/pycharm+all
 
 mask_rcnn_coco.h5
+*.MistGPU-048
+*.h5
