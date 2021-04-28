@@ -79,12 +79,12 @@ config.display()
 
 
 class CrackDataset(utils.Dataset):
-    # 得到该图中有多少个实例（物体）
+    # Get how many instances (objects) there are in the image
     def get_obj_index(self, image):
         n = np.max(image)
         return n
 
-    # 解析labelme中得到的yaml文件，从而得到mask每一层对应的实例标签
+    # Parse the yaml file obtained in labelme to obtain the instance label corresponding to each layer of the mask
     def from_yaml_get_class(self, image_id):
         info = self.image_info[image_id]
         with open(info['yaml_path']) as f:
@@ -93,7 +93,7 @@ class CrackDataset(utils.Dataset):
             del labels[0]
         return labels
 
-    # 重新写draw_mask
+    # overwrite draw_mask
     def draw_mask(self, num_obj, mask, image, image_id):
         info = self.image_info[image_id]
         for index in range(num_obj):
@@ -104,8 +104,7 @@ class CrackDataset(utils.Dataset):
                         mask[j, i, index] = 1
         return mask
 
-    # 重新写load_shapes，里面包含自己的自己的类别
-    # 并在self.image_info信息中添加了path、mask_path 、yaml_path
+    # overwrite load_shapes
     # yaml_pathdataset_root_path = "/tongue_dateset/"
     # img_floder = dataset_root_path + "rgb"
     # mask_floder = dataset_root_path + "mask"
@@ -120,7 +119,7 @@ class CrackDataset(utils.Dataset):
         self.add_class("shapes", 1, "crack")
 
         for i in range(count):
-            # 获取图片宽和高
+            # get the height and width
 
             filestr = imglist[i].split(".")[0]
 
@@ -173,10 +172,10 @@ def get_ax(rows=1, cols=1, size=8):
 
 def data_split(full_list, ratio, shuffle=False):
     """
-    数据集拆分: 将列表full_list按比例ratio（随机）划分为2个子列表sublist_1与sublist_2
-    :param full_list: 数据列表
-    :param ratio:     子列表1
-    :param shuffle:   子列表2
+    divide dataset
+    :param full_list:   data list
+    :param ratio:       subset1
+    :param shuffle:     subset2
     :return:
     """
     n_total = len(full_list)
@@ -190,7 +189,7 @@ def data_split(full_list, ratio, shuffle=False):
     return sublist_1, sublist_2
 
 
-# 基础设置
+# primary settings
 dataset_root_path = "mydata/"
 img_floder = dataset_root_path + "pic"
 mask_floder = dataset_root_path + "cv2_mask"
@@ -198,7 +197,7 @@ imglist = os.listdir(img_floder)
 count = len(imglist)
 imglist_train, imglist_val = data_split(imglist, 0.8, shuffle=True)
 
-# train与val数据集准备
+# prepare train/validation datasets
 dataset_train = CrackDataset()
 dataset_train.load_shapes(len(imglist_train), img_floder, mask_floder, imglist_train, dataset_root_path)
 dataset_train.prepare()
