@@ -34,7 +34,7 @@ from samples.coco import coco
 
 # Directory to save logs and trained model
 MODEL_DIR = os.path.join(ROOT_DIR, "logs")
-MODEL_WEIGHT = './logs/shapes20210427T1233/mask_rcnn_shapes_0199.h5'
+MODEL_WEIGHT = './mask_rcnn_shapes_0199.h5'
 """
 # Local path to trained weights file
 COCO_MODEL_PATH = os.path.join(MODEL_DIR ,"mask_rcnn_coco.h5")

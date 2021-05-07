@@ -97,3 +97,4 @@ mask_rcnn_coco.h5
 *.MistGPU-048
 *.h5
 *.pyc
+mydata/Datasets.zip
